@@ -1,0 +1,12 @@
+site_name: Scalable Web Systems
+theme:
+  name: material
+  features:
+    - navigation.instant
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/scalable-web-systems
+      name: Scalable Web Systems on Github
+
