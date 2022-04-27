@@ -1,3 +1,3 @@
-# mkdocs-test
+# Scalable Web Systems
 
-Testing mkdocs for our wiki needs. Testing.
+This repository hosts the website and the automations to pull all the tutorials and build the site with the relevant github actions. 
