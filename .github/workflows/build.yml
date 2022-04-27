@@ -1,0 +1,25 @@
+name: Deploy
+
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# on:
+#   schedule:
+#     - cron:  '0 15 * * FRI'
+
+on: [workflow_dispatch]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - run: pip install mkdocs-material 
+      - run: python automate.py
+      - run: mkdocs gh-deploy --force
