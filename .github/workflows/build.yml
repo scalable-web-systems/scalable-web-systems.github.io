@@ -1,4 +1,4 @@
-name: Deploy
+name: build_wiki
 
 
 # on:
@@ -13,7 +13,7 @@ name: Deploy
 on: [workflow_dispatch]
 
 jobs:
-  deploy:
+  build_wiki:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
