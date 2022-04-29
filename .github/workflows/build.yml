@@ -10,7 +10,20 @@ name: build_wiki
 #   schedule:
 #     - cron:  '0 15 * * FRI'
 
-on: [workflow_dispatch]
+on: 
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning' 
+        type: choice
+        options:
+        - info
+        - warning
+        - debug 
+  schedule:
+    - cron:  '0 15 * * FRI'
 
 jobs:
   build_wiki:
