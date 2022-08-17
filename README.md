@@ -7,4 +7,4 @@ This repository hosts the website and the automations to pull all the tutorials 
 
 The following is an architecture diagram of how the whole automated wiki works. 
 
-![](documentation/system-overview.png)
+![](documentation/system-overview.jpg)
