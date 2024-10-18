@@ -1,0 +1,1016 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../kubernetes-basics/">
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.41">
+    
+    
+      
+        <title>Kubernetes system design - Scalable Web Systems</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.0253249f.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#kubernetes-system-design" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Scalable Web Systems" class="md-header__button md-logo" aria-label="Scalable Web Systems" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Scalable Web Systems
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Kubernetes system design
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Scalable Web Systems" class="md-nav__button md-logo" aria-label="Scalable Web Systems" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Scalable Web Systems
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Welcome
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    0 kubernetes
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            0 kubernetes
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kubernetes-basics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Kubernetes basics
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Kubernetes system design
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Kubernetes system design
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#author" class="md-nav__link">
+    <span class="md-ellipsis">
+      Author
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-cap-theorem" class="md-nav__link">
+    <span class="md-ellipsis">
+      The CAP Theorem
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#single-point-of-failure-spof" class="md-nav__link">
+    <span class="md-ellipsis">
+      Single Point of Failure (SPOF)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#databases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Databases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Databases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#acid-compliance" class="md-nav__link">
+    <span class="md-ellipsis">
+      ACID Compliance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-sharding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Sharding
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caching
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Caching">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#advantages-of-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages of Caching
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching-policies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caching Policies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updating-the-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updating the Cache
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storing-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storing Images
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Storing Images">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#storing-it-as-a-file-in-a-file-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storing it as a file (in a file system)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storing-it-in-a-database-as-a-blob" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storing it in a database (as a Blob)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#queue-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Queue Systems
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Queue Systems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#publisher-subscriber-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Publisher Subscriber Model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#message-guarantees" class="md-nav__link">
+    <span class="md-ellipsis">
+      Message Guarantees
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-gateway" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Gateway
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acknowledgements
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feedback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Feedback
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#author" class="md-nav__link">
+    <span class="md-ellipsis">
+      Author
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-cap-theorem" class="md-nav__link">
+    <span class="md-ellipsis">
+      The CAP Theorem
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#single-point-of-failure-spof" class="md-nav__link">
+    <span class="md-ellipsis">
+      Single Point of Failure (SPOF)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#databases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Databases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Databases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#acid-compliance" class="md-nav__link">
+    <span class="md-ellipsis">
+      ACID Compliance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-sharding" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Sharding
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caching
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Caching">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#advantages-of-caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advantages of Caching
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching-policies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Caching Policies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updating-the-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updating the Cache
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storing-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storing Images
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Storing Images">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#storing-it-as-a-file-in-a-file-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storing it as a file (in a file system)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storing-it-in-a-database-as-a-blob" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storing it in a database (as a Blob)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#queue-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Queue Systems
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Queue Systems">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#publisher-subscriber-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Publisher Subscriber Model
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#message-guarantees" class="md-nav__link">
+    <span class="md-ellipsis">
+      Message Guarantees
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-gateway" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Gateway
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acknowledgements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acknowledgements
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feedback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Feedback
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<!-- 0 -->
+<h1 id="kubernetes-system-design">Kubernetes-System-Design</h1>
+<p><img alt="" src="https://snyk.io/wp-content/uploads/Kubernetes-Blog.png" /></p>
+<h2 id="author">Author</h2>
+<blockquote>
+<p>Abhinav Tripathy <a href="https://www.linkedin.com/in/abhinavtripathy/">Linkedin</a></p>
+</blockquote>
+<h2 id="introduction">Introduction</h2>
+<p>When it comes to building scalable systems, kubernetes is a great tool and a quite a popular one. However, there are many fundamental concepts that one needs to think about from a system design perspective when thinking about scalable systems in the context of kubernetes. This tutorial hopes to cover some of the fundamental concepts such as databases, caching, the CAP theorem. </p>
+<h2 id="the-cap-theorem">The CAP Theorem</h2>
+<p>CAP stands for:</p>
+<pre><code>CAP: Consistency, Availability, Partition Tolerance
+</code></pre>
+<p>Let us define these terms:
+- Consistency: any read operation that begins after a write operation completes must return that value, or the result of a later write operation
+- Availability: every request received by a non-failing node in the system must result in a response
+- Partition Tolerance: the network will be allowed to lose arbitrarily many messages sent from one node to another</p>
+<p>The theorem:</p>
+<pre><code>The CAP theorem states that a distributed system cannot simultaneously be consistent, available, and partition tolerant. 
+</code></pre>
+<p>An <a href="https://mwhittaker.github.io/blog/an_illustrated_proof_of_the_cap_theorem/">illustrated proof</a> of the theorem. </p>
+<p>An Example: </p>
+<p>In order to get both availability and partition tolerance, you have to give up consistency. Consider if you have two nodes, X and Y. Now, there is a break between network communication between X and Y, so they can't sync updates. At this point you can either:</p>
+<p>A) Allow the nodes to get out of sync (giving up consistency), or</p>
+<p>B) Consider the cluster to be "down" (giving up availability)</p>
+<p>The different combinations in CAP:</p>
+<ul>
+<li>CA - data is consistent between all nodes - as long as all nodes are online - and you can read/write from any node and be sure that the data is the same, but if you ever develop a partition between nodes, the data will be out of sync (and won't re-sync once the partition is resolved).</li>
+<li>CP - data is consistent between all nodes, and maintains partition tolerance (preventing data desync) by becoming unavailable when a node goes down.</li>
+<li>AP - nodes remain online even if they can't communicate with each other and will resync data once the partition is resolved, but you aren't guaranteed that all nodes will have the same data (either during or after the partition)</li>
+</ul>
+<p>An image displaying the proof:</p>
+<p><img alt="" src="https://i.imgur.com/wnajdiH.png" /></p>
+<p><strong>Important Note</strong>: CAP is a spectrum. What that means is that it is not a hard and fast rule that only 2 out of the 3 will work but rather it is a theorem to think about tradeoffs. Certain transactions require high availability some require high consistency. It helps a system designer to think about trade offs, optimize for these 3 important constraints. </p>
+<h2 id="single-point-of-failure-spof">Single Point of Failure (SPOF)</h2>
+<p>In any scalable system, we must avoid single point of failures. As the name suggests, it is a a node,(it could be any part of the system) if it fails the whole system would go down. </p>
+<p>As an example, this image displays how a single load balancer could be an SPOF. </p>
+<p><img alt="" src="https://avinetworks.com/wp-content/uploads/2020/09/single-point-of-failure-diagram.png" /></p>
+<p>As the image suggests, having multiple load balancers is the solution. </p>
+<p>To mitigate SPOFs we have 3 key approaches:</p>
+<ul>
+<li>More Nodes: With more nodes one can duplicate the node or service and distribute traffic among them. Another way is to use the secondary node/nodes as a backup service, though that would potentially lead to wasting resources. </li>
+<li>Master Slave Approach: This approach is quite useful especially in the context of databases. The main question here is what if a database goes down. This can be mitigated by having a master database off which slaves replicate. So in the case master goes down, one of the slaves can become a master. There can be additional complexity such as having multiple masters or having read only slaves/write only slaves. </li>
+<li>Master - Master Approach: This is like the master slave approach however in this case the two or more nodes, all get read requests and write loads are distributed among the master nodes. The advantage it is a simple automatic failover. The main disadvatange is that it is loosely consistent and it is not as simple as master-slave to configure. </li>
+<li>Multiple Regions: Having all resources in one region can also mean a SPOF. For instance, all your services in the cloud are in the US east region. To avoid, infrastructure going down in one area or a natural disaster happenning, having services and resources split across multiple regions is a good practice.</li>
+</ul>
+<p>An Example Diagram of master slave approach:</p>
+<p><img alt="" src="https://miro.medium.com/max/1400/1*Uwa5km4MJpjH42AXtr6ftA.jpeg" /></p>
+<h2 id="databases">Databases</h2>
+<p>The following are some key concepts in databases. </p>
+<h3 id="acid-compliance">ACID Compliance</h3>
+<p><strong>Atomicity</strong>: Database transactions, like atoms, can be broken 
+down into smaller parts. When it comes to your database, atomicity 
+refers to the integrity of the entire database transaction, not just a 
+component of it. In other words, if one part of a transaction doesn’t 
+work like it’s supposed to, the other will fail as a result—and vice 
+versa. For example, if you’re shopping on an e-commerce site, you must 
+have an item in your cart in order to pay for it. What you can’t do is 
+pay for something that’s not in your cart. (You can add something into 
+your cart and not pay for it, but that database transaction won’t be 
+complete, and thus not ‘atomic’, until you pay for it).</p>
+<p><strong>Consistency</strong>: For any database to operate as it’s intended to 
+operate, it must follow the appropriate data validation rules. Thus, 
+consistency means that only data which follows those rules is permitted 
+to be written to the database. If a transaction occurs and results in 
+data that does not follow the rules of the database, it will be ‘rolled 
+back’ to a previous iteration of itself (or ‘state’) which complies with
+ the rules. On the other hand, following a successful transaction, new 
+data will be added to the database and the resulting state will be 
+consistent with existing rules.</p>
+<p><strong>Isolation</strong>: It’s safe to say that at any given time on Amazon, 
+there is far more than one transaction occurring on the platform. In 
+fact, an incredibly huge amount of database transactions are occurring 
+simultaneously. For a database, isolation refers to the ability to 
+concurrently process multiple transactions in a way that one does not 
+affect another. So, imagine you and your neighbor are both trying to buy
+ something from the same e-commerce platform at the same time. There are
+ 10 items for sale: your neighbor wants five and you want six. Isolation
+ means that one of those transactions would be completed ahead of the 
+other one. In other words, if your neighbor clicked first, they will get
+ five items, and only five items will be remaining in stock. So you will
+ only get to buy five items. If you clicked first, you will get the six 
+items you want, and they will only get four. Thus, isolation ensures 
+that eleven items aren’t sold when only ten exist.</p>
+<p><strong>Durability</strong>: All technology fails from time to time… the goal 
+is to make those failures invisible to the end-user. In databases that 
+possess durability, data is saved once a transaction is completed, even 
+if a power outage or system failure occurs. Imagine you’re buying 
+in-demand concert tickets on a site similar to Ticketmaster.com. Right 
+when tickets go on sale, you’re ready to make a purchase. After being 
+stuck in the digital waiting room for some time, you’re finally able to 
+add those tickets to your cart. You then make the purchase and get your 
+confirmation. However if that database lacks durability, even after your
+ ticket purchase was confirmed, if the database suffers a failure 
+incident your transaction would still be lost! As you might expect, this
+ is a really bad thing to happen for an online e-commerce site, so 
+transaction durability is a must-have.</p>
+<h3 id="database-sharding">Database Sharding</h3>
+<p>Database sharding is a popular concept when dealing with high volume data and is a very popular way to manage in No-SQL databases. Shards are autonomous and is an example to scale horizontally. Shards are basically partitions of the database based on a key. This key is what decides the shards, it could be a column value, it could be location or user ID or any other attribute that makes sense and works universally on the incoming data. Each shard can be protected by the master slave architecture for further scalability. </p>
+<p>An example of shards:</p>
+<p><img alt="" src="https://assets.digitalocean.com/articles/understanding_sharding/DB_image_3_cropped.png" /></p>
+<h2 id="caching">Caching</h2>
+<p>Caching is a way to speed up retrieval of frequently or commonly accessed data. This means storing data in something like Redis that helps retrieve data very quickly. The reason this is possible is the data is stored in memory instead of a storage device like a disk(which is slower than in memory). In memory storage also means it is volatile which means it does not have ACID compliance. </p>
+<h3 id="advantages-of-caching">Advantages of Caching</h3>
+<ul>
+<li>Reduce network calls</li>
+<li>Reduce Recomputations</li>
+<li>Reduce Database load</li>
+</ul>
+<h3 id="caching-policies">Caching Policies</h3>
+<p>Caching policies are used to delete unnecessary cache values to make sure the cache is up to date and always fresh and relevant to the incoming requests. </p>
+<ul>
+<li>LRU Cache - Least Recently Used</li>
+<li>LFU Cache - Least Frequently Used Cache</li>
+<li>Sliding window</li>
+</ul>
+<h3 id="updating-the-cache">Updating the Cache</h3>
+<ul>
+<li>Cache Aside</li>
+<li>Write Through</li>
+<li>Write Behind</li>
+<li>Refresh Ahead</li>
+</ul>
+<h2 id="storing-images">Storing Images</h2>
+<h3 id="storing-it-as-a-file-in-a-file-system">Storing it as a file (in a file system)</h3>
+<ul>
+<li>Storing files in a file system is often cheaper in the context of cost</li>
+<li>Database needs to be used to the save the file URL</li>
+<li>it is a static asset so can be used with CDNs - allows fast access</li>
+</ul>
+<h3 id="storing-it-in-a-database-as-a-blob">Storing it in a database (as a Blob)</h3>
+<pre><code>Blob: Binary Large Object
+</code></pre>
+<ul>
+<li>Storing the image as a blog in a database means there is ACID compliance which gives transaction garrantuees</li>
+<li>Indexes with databases can improve search</li>
+<li>Easy Access control with databases for images is quite useufl too</li>
+</ul>
+<h2 id="queue-systems">Queue Systems</h2>
+<p>Queues are used to in many scalable and distributed systems. They allow for asychronous tasks and environment to be handled which allows for better performance. It also makes a scalable system more fault tolerant as it acts as an intermediary between services. They also allow for very high throughput and scalability. </p>
+<h3 id="publisher-subscriber-model">Publisher Subscriber Model</h3>
+<p>Often queues will be used through a publisher subscriber model. For Example, if we have a pizza delivery system, the client on the front-end acts as a publisher i.e. it publishes orders on to the queue. Then a service that notifies the team aobut the order is a subscriber. There can be mulitple subscribers and producers and a service can act as both. </p>
+<p>Sample Publisher Subscriber Model:
+<img alt="" src="https://pulsar.apache.org/docs/assets/pulsar-subscription-types.png" /></p>
+<p>More generall we can say that the model looks like the following:
+<img alt="" src="https://miro.medium.com/max/1400/0*UJZs-kc51yYIXObI" /></p>
+<h3 id="message-guarantees">Message Guarantees</h3>
+<p>In any system, we need to think about potential tradeoffs and guarantees. In queueing systems, one thing to talk about is processing/messaging guarantees. </p>
+<ul>
+<li>No guarantee — No explicit guarantee is provided, so consumers may process messages once, multiple times or never at all.</li>
+<li>At most once — This is “best effort” delivery semantics. Consumers will receive and process messages exactly once or not at all.</li>
+<li>At least once — Consumers will receive and process every message, but they may process the same message more than once.</li>
+<li>Effectively once — Also contentiously known as exactly once, this promises consumers will process every message once.</li>
+</ul>
+<h2 id="api-gateway">API Gateway</h2>
+<p>An API Gateway is the entry door for a client to talk to a collection of backend services. The gateway provides a single entrypoint which allows it to look for the right services to talk to in the backend the return the approporiate result. </p>
+<p>API Gateway Architecture:
+<img alt="" src="https://i0ba83ftsgi2rzkek1hlusq1-wpengine.netdna-ssl.com/wp-content/uploads/2018/04/API-Gateway-Diagram.jpg" /></p>
+<p>Uses for API Gateway:
+- Rate Limiting
+- Statistics &amp; User Analytics 
+- Handling User Authentication 
+- Handling multiple requests in a microservices architecture </p>
+<h2 id="acknowledgements">Acknowledgements</h2>
+<ul>
+<li><a href="https://stackoverflow.com/questions/12346326/cap-theorem-availability-and-partition-tolerance">CAP</a></li>
+<li><a href="https://dev.to/vishnuchilamakuru/4-ways-to-update-your-cache-jmg">Updating cache</a></li>
+<li><a href="https://medium.com/@andy.bryant/processing-guarantees-in-kafka-12dd2e30be0e">Message Processing Guarantees</a></li>
+</ul>
+<h2 id="feedback">Feedback</h2>
+<p>If you have any feedback or comments or want to improve something, please open an issue on github <a href="https://github.com/scalable-web-systems/feedback/issues/new/choose">here</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/scalable-web-systems" target="_blank" rel="noopener" title="Scalable Web Systems on Github" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.83f73b43.min.js"></script>
+      
+    
+  </body>
+</html>
